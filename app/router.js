@@ -34,7 +34,8 @@ module.exports = app => {
   router.get('/download/:filename', controller.home.downloadFile);
   router.delete('/api/files/:filename', controller.home.deleteFile);
   router.get('/files/:username/:filename', controller.home.serveFile);
-  
+  router.get('/baxiaxia', controller.home.baxiaxiaPage);
+
   // 健康检查路由
   router.get('/health', controller.health.check);
   router.get('/api/health', controller.health.check);

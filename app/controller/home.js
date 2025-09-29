@@ -557,6 +557,16 @@ class HomeController extends BaseController {
     return contentTypes[ext] || 'application/octet-stream';
   }
 
+  async baxiaxiaPage() {
+    const title = '八泉峡儿童体验项目';
+    const username = this.ctx.session.username;
+    await this.ctx.render('baxiaxia', {
+      title,
+      username,
+      isBaxiaxiaPage: true,
+    });
+  }
+
   async index2() {
     const { ctx } = this;
     const ret = await ctx.service.population.getData(dataP => {
