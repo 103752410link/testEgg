@@ -1,0 +1,57 @@
+{
+  "name": "readme",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "egg": {
+    "declarations": true
+  },
+  "dependencies": {
+    "acorn": "^7.1.0",
+    "apn": "^2.0.0",
+    "egg": "^3.31.0",
+    "egg-mysql": "^3.0.0",
+    "egg-scripts": "^2.11.0",
+    "egg-view-ejs": "^3.0.0",
+    "egg-view-nunjucks": "^2.2.0",
+    "mocha": "^11.7.2",
+    "mysql": "^2.18.1",
+    "node-xlsx": "^0.4.0",
+    "nodemailer": "^6.7.7",
+    "xml-js": "^1.6.11"
+  },
+  "devDependencies": {
+    "autod": "^2.4.2",
+    "autod-egg": "^1.1.0",
+    "egg-bin": "^4.11.0",
+    "egg-ci": "^1.11.0",
+    "egg-mock": "^5.15.2",
+    "eslint": "^9.36.0",
+    "eslint-config-egg": "^14.1.0"
+  },
+  "engines": {
+    "node": ">=10.0.0"
+  },
+  "scripts": {
+    "start": "egg-scripts start --daemon --title=egg-server-readme --port=7002",
+    "stop": "egg-scripts stop --title=egg-server-readme",
+    "monitor": "node scripts/monitor.js",
+    "dev": "egg-bin dev",
+    "debug": "egg-bin debug",
+    "test": "npm run lint -- --fix && npm run test-local",
+    "test-local": "egg-bin test",
+    "cov": "egg-bin cov",
+    "lint": "eslint .",
+    "ci": "npm run lint && npm run cov",
+    "autod": "autod"
+  },
+  "ci": {
+    "version": "10"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "",
+  "license": "MIT"
+}

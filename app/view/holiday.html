@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>年度日历</title>
+    <link rel="stylesheet" href="/public/css/style.css">
+    <style>
+        .calendar-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+        .month {
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .month-header {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        .day,
+        .weekday {
+            text-align: center;
+            padding: 5px;
+        }
+        .day.saturday {
+            color: green;
+        }
+        .day.sunday {
+            color: red;
+        }
+        .day.holiday {
+            background-color: yellow;
+            color: #333;
+        }
+        .day.workday {
+            background-color: white;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-fire"></i> Phoenix
+            </a>
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> 首页</a></li>
+                <li><a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a></li>
+                <li><a href="/register"><i class="fas fa-user-plus"></i> 注册</a></li>
+                {% if not isHolidayPage %}
+                <li><a href="/holiday"><i class="fas fa-calendar"></i> 节假日</a></li>
+                {% endif %}
+                <li><a href="/email"><i class="fas fa-envelope"></i> 邮件</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="calendar-container" id="calendar-container" style="margin-top: 80px;"></div>
+
+    <script>
+        const calendarContainer = document.getElementById('calendar-container');
+        const currentYear = new Date().getFullYear();
+
+        async function initCalendar() {
+            try {
+                const response = await fetch('/api/holiday?day=all');
+                const result = await response.json();
+
+                if (result.status === 0) {
+                    const holidayData = result.data;
+                    renderCalendar(holidayData);
+                }
+            } catch (error) {
+                console.error('获取节假日数据失败:', error);
+                renderCalendar();
+            }
+        }
+
+        function renderCalendar(holidayData) {
+            for (let month = 0; month < 12; month++) {
+                const monthEl = document.createElement('div');
+                monthEl.classList.add('month');
+
+                const monthHeader = document.createElement('div');
+                monthHeader.classList.add('month-header');
+                monthHeader.textContent = `${currentYear}年${month + 1}月`;
+                monthEl.appendChild(monthHeader);
+
+                const daysEl = document.createElement('div');
+                daysEl.classList.add('days');
+
+                const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+                weekdays.forEach(weekday => {
+                    const weekdayEl = document.createElement('div');
+                    weekdayEl.classList.add('weekday');
+                    weekdayEl.textContent = weekday;
+                    daysEl.appendChild(weekdayEl);
+                });
+
+                const daysInMonth = new Date(currentYear, month + 1, 0).getDate();
+                const firstDayOfMonth = new Date(currentYear, month, 1).getDay();
+
+                for (let i = 0; i < firstDayOfMonth; i++) {
+                    const emptyDay = document.createElement('div');
+                    emptyDay.classList.add('day');
+                    daysEl.appendChild(emptyDay);
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayEl = document.createElement('div');
+                    dayEl.classList.add('day');
+                    dayEl.textContent = day;
+
+                    const date = new Date(currentYear, month, day);
+                    const dayOfWeek = date.getDay();
+
+                    const dateStr = currentYear +
+                        String(month + 1).padStart(2, '0') +
+                        String(day).padStart(2, '0');
+
+                    if (holidayData) {
+                        if (holidayData.holidays && holidayData.holidays.includes(dateStr)) {
+                            dayEl.classList.add('holiday');
+                        }
+                        if (holidayData.notholidays && holidayData.notholidays.includes(dateStr)) {
+                            dayEl.classList.add('workday');
+                        }
+                    }
+
+                    if (dayOfWeek === 0) {
+                        dayEl.classList.add('sunday');
+                    } else if (dayOfWeek === 6) {
+                        dayEl.classList.add('saturday');
+                    }
+
+                    daysEl.appendChild(dayEl);
+                }
+
+                monthEl.appendChild(daysEl);
+                calendarContainer.appendChild(monthEl);
+            }
+        }
+
+        initCalendar();
+    </script>
+</body>
+</html>

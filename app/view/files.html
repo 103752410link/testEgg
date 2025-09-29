@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件管理</title>
+    <link rel="stylesheet" href="/public/css/style.css">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            margin-top: 80px;
+        }
+        .upload-section {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        .upload-area.dragover {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+        }
+        .file-input {
+            display: none;
+        }
+        .upload-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .upload-btn:hover {
+            background: #0056b3;
+        }
+        .file-list {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .file-list h3 {
+            padding: 20px;
+            margin: 0;
+            border-bottom: 1px solid #eee;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        .file-item:hover {
+            background-color: #f8f9fa;
+        }
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: #007bff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 15px;
+        }
+        .file-info {
+            flex: 1;
+        }
+        .file-name {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        .file-meta {
+            color: #666;
+            font-size: 14px;
+        }
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .btn-download {
+            background: #28a745;
+            color: white;
+        }
+        .btn-download:hover {
+            background: #218838;
+        }
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-delete:hover {
+            background: #c82333;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 10px;
+            display: none;
+        }
+        .progress-bar.active {
+            display: block;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #007bff;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-fire"></i> Phoenix
+            </a>
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> 首页</a></li>
+                {% if username %}
+                <li><a href="/userInfo"><i class="fas fa-user"></i> {{ username }}</a></li>
+                <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> 退出</a></li>
+                {% else %}
+                <li><a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a></li>
+                <li><a href="/register"><i class="fas fa-user-plus"></i> 注册</a></li>
+                {% endif %}
+                <li><a href="/holiday"><i class="fas fa-calendar"></i> 节假日</a></li>
+                {% if not isFilesPage %}
+                <li><a href="/files"><i class="fas fa-folder"></i> 文件管理</a></li>
+                {% endif %}
+                <li><a href="/email"><i class="fas fa-envelope"></i> 邮件</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% if username %}
+        <div class="upload-section">
+            <h2>
+                文件上传
+                {% if isAdmin %}
+                <span style="background: #dc3545; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 10px;">管理员</span>
+                {% endif %}
+            </h2>
+            <div class="upload-area" id="uploadArea">
+                <div>
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #ccc; margin-bottom: 15px;"></i>
+                    <p>拖拽文件到此处或点击选择文件</p>
+                    <button class="upload-btn" id="uploadBtn">
+                        选择文件
+                    </button>
+                </div>
+            </div>
+            <input type="file" id="fileInput" class="file-input" multiple>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+        </div>
+        {% else %}
+        <div class="upload-section" style="text-align: center; padding: 40px;">
+            <h2>文件管理</h2>
+            <p style="color: #666; margin-bottom: 20px;">请先登录后使用文件管理功能</p>
+            <a href="/login" class="btn" style="background: #007bff; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">
+                <i class="fas fa-sign-in-alt"></i> 立即登录
+            </a>
+        </div>
+        {% endif %}
+
+        <div class="file-list">
+            <h3>
+                文件列表
+                {% if isAdmin %}
+                <span style="color: #dc3545; font-size: 14px; font-weight: normal; margin-left: 10px;">(查看所有用户文件)</span>
+                {% endif %}
+            </h3>
+            <div id="fileListContainer">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileListContainer = document.getElementById('fileListContainer');
+
+        // 只在用户登录时初始化上传功能
+        {% if username %}
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressBarFill = document.getElementById('progressBarFill');
+
+        // 拖拽上传
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        uploadArea.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            fileInput.click();
+        });
+
+        uploadBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFiles(e.target.files);
+            }
+        });
+        {% endif %}
+
+        function handleFiles(files) {
+            for (let file of files) {
+                uploadFile(file);
+            }
+        }
+
+        async function uploadFile(file) {
+            // 检查登录状态
+            const response = await fetch('/api/files');
+            if (response.status === 401) {
+                showNotification('请先登录', 'error');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            progressBar.classList.add('active');
+            progressBarFill.style.width = '0%';
+
+            try {
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        progressBarFill.style.width = percentComplete + '%';
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        try {
+                            const result = JSON.parse(xhr.responseText);
+                            if (result.status === 0) {
+                                showNotification('文件上传成功', 'success');
+                                loadFiles();
+                            } else {
+                                showNotification(result.message || '上传失败', 'error');
+                            }
+                        } catch (e) {
+                            showNotification('服务器响应错误', 'error');
+                        }
+                    } else {
+                        showNotification('上传失败: ' + xhr.status, 'error');
+                    }
+                    progressBar.classList.remove('active');
+                });
+
+                xhr.addEventListener('error', () => {
+                    showNotification('网络错误，上传失败', 'error');
+                    progressBar.classList.remove('active');
+                });
+
+                xhr.open('POST', '/api/upload');
+                xhr.send(formData);
+
+            } catch (error) {
+                showNotification('上传失败: ' + error.message, 'error');
+                progressBar.classList.remove('active');
+            }
+        }
+
+        async function loadFiles() {
+            try {
+                const response = await fetch('/api/files');
+
+                if (response.status === 401) {
+                    fileListContainer.innerHTML = '<div class="empty-state">请先登录后查看文件</div><div style="text-align: center; margin-top: 20px;"><a href="/login" class="btn btn-download">去登录</a></div>';
+                    return;
+                }
+
+                const result = await response.json();
+
+                if (result.status === 0) {
+                    displayFiles(result.data);
+                } else {
+                    fileListContainer.innerHTML = '<div class="empty-state">获取文件列表失败</div>';
+                }
+            } catch (error) {
+                fileListContainer.innerHTML = '<div class="empty-state">加载失败</div>';
+            }
+        }
+
+        function displayFiles(files) {
+            if (files.length === 0) {
+                fileListContainer.innerHTML = '<div class="empty-state">暂无文件，点击上传区域添加文件</div>';
+                return;
+            }
+
+            const isAdmin = {% if isAdmin %}true{% else %}false{% endif %};
+            const fileItems = files.map(file => {
+                const fileSize = formatFileSize(file.size);
+                const uploadTime = new Date(file.uploadTime).toLocaleString();
+                const ownerInfo = file.owner && file.owner !== '{{ username }}' ? `<div style="color: #dc3545; font-size: 12px;">所有者: ${file.owner}</div>` : '';
+
+                return `
+                    <div class="file-item">
+                        <div class="file-icon">
+                            <i class="fas fa-file"></i>
+                        </div>
+                        <div class="file-info">
+                            <div class="file-name">${file.originalName || file.filename}</div>
+                            <div class="file-meta">
+                                大小: ${fileSize} | 上传时间: ${uploadTime}
+                            </div>
+                            ${ownerInfo}
+                        </div>
+                        <div class="file-actions">
+                            <a href="${file.downloadUrl}" class="btn btn-download">下载</a>
+                            <button class="btn btn-delete" onclick="deleteFile('${file.owner || '{{ username }}'}', '${encodeURIComponent(file.filename)}')">删除</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            fileListContainer.innerHTML = fileItems;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 5px;
+                color: white;
+                font-weight: 500;
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+                background: ${type === 'success' ? '#28a745' : '#dc3545'};
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        async function deleteFile(owner, filename) {
+            if (!confirm('确定要删除这个文件吗？')) {
+                return;
+            }
+
+            try {
+                // 先检查登录状态
+                const filesResponse = await fetch('/api/files');
+                if (filesResponse.status === 401) {
+                    showNotification('请先登录', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 1500);
+                    return;
+                }
+
+                const response = await fetch(`/api/files/${owner}/${filename}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.status === 0) {
+                    showNotification('文件删除成功', 'success');
+                    loadFiles();
+                } else {
+                    showNotification(result.message, 'error');
+                }
+            } catch (error) {
+                showNotification('删除失败', 'error');
+            }
+        }
+
+        // 页面加载时获取文件列表
+        loadFiles();
+    </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+   <head>
+       <meta charset="utf-8">
+   </head>
+   <body style="height: 100%; margin: 0">
+    <div id="container" style="height: 100%;width: 95%"></div>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+       <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts-gl/dist/echarts-gl.min.js"></script>
+       <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts-stat/dist/ecStat.min.js"></script>
+       <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/extension/dataTool.min.js"></script>
+       <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/map/js/china.js"></script>
+       <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/map/js/world.js"></script>
+       <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/extension/bmap.min.js"></script>
+       <input id="dataFemale" value="{{dataFemale}}" type="hidden"/>
+       <input id="dataMale" value="{{dataMale}}" type="hidden" /> 
+       <input id="dataTotal" value="{{dataTotal}}" type="hidden"/>
+       <input id="dataAge" value="{{dataAge}}" type="hidden" /> 
+       <script type="text/javascript">
+var dom = document.getElementById("container");
+var myChart = echarts.init(dom);
+var app = {};
+var dataAge = document.getElementById('dataAge').value.split(',');
+var dataTotal = document.getElementById('dataTotal').value.split(',');
+var dataFemale = document.getElementById('dataFemale').value.split(',');
+var dataMale = document.getElementById('dataMale').value.split(',');
+option = null;
+option = {
+    title: {
+        text: '2030中国人口年龄性别分布(预测)',
+        subtext: '数据来自网络'
+    },
+    tooltip: {
+        trigger: 'axis',
+        axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+            type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+        }
+    },
+    legend: {
+        data: ['男', '女']
+    },
+    grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+    },
+    xAxis: [
+        {
+            type: 'value'
+        }
+    ],
+    yAxis: [
+        {
+            type: 'category',
+            axisTick: {
+                show: false
+            },
+            data: dataAge
+        }
+    ],
+    series: [
+        {
+            name: '女',
+            type: 'bar',
+            stack: '总量',
+            data: dataFemale
+        },
+        {
+            name: '男',
+            type: 'bar',
+            stack: '总量',
+            data: dataMale
+        }
+    ]
+};
+;
+if (option && typeof option === "object") {
+    myChart.setOption(option, true);
+}
+       </script>
+   </body>
+</html>

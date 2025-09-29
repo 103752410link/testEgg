@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+</head>
+<body>
+      echarts Demo!
+      <!--{{data1}}-->
+      <div id="main" style="width: 2600px;height:800px;"></div>
+        <input id="dataFemale" value="{{dataFemale}}" type="hidden"/>
+        <input id="dataMale" value="{{dataMale}}" type="hidden" /> 
+        <input id="dataTotal" value="{{dataTotal}}" type="hidden"/>
+        <input id="dataAge" value="{{dataAge}}" type="hidden" /> 
+        <script type="text/javascript">
+          // 基于准备好的dom，初始化echarts实例
+          var myChart = echarts.init(document.getElementById('main'));
+          var dataAge = document.getElementById('dataAge').value.split(',');
+          var dataTotal = document.getElementById('dataTotal').value.split(',');
+          var dataFemale = document.getElementById('dataFemale').value.split(',');
+          var dataMale = document.getElementById('dataMale').value.split(',');
+          // 指定图表的配置项和数据
+          var option = {
+              title: {
+                  text: 'ECharts 入门示例'
+              },
+              tooltip: {},
+              legend: {
+                  data:['总计']
+              },
+              xAxis: {
+                  data:dataAge
+              },
+              yAxis: {},
+              series: [{
+                  name: '总计',
+                  type: 'bar',
+                  data: dataTotal
+              },{
+                  name: '男',
+                  type: 'bar',
+                  data: dataMale
+              },{
+                  name: '女',
+                  type: 'bar',
+                  data: dataFemale
+              }]
+          };
+ 
+          // 使用刚指定的配置项和数据显示图表。
+          myChart.setOption(option);
+      </script>
+</body>
+</html>
